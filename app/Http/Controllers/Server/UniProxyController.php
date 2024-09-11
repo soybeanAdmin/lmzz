@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Server;
 
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Redis;
@@ -24,9 +25,11 @@ class UniProxyController extends Controller
         if (empty($token)) {
             abort(500, 'token is null');
         }
-        if ($token !== config('v2cfg.server_token')) {
+
+        if(!in_array($token, config('v2cfg.server_token'))){
             abort(500, 'token is error');
         }
+
         $this->nodeType = $request->input('node_type');
 //        if ($this->nodeType === 'v2ray') $this->nodeType = 'vmess';
         $this->nodeId = $request->input('node_id');
@@ -40,16 +43,19 @@ class UniProxyController extends Controller
     // 后端获取用户
     public function user(Request $request)
     {
-echo 123;exit;
-        ini_set('memory_limit', -1);
-        $users = Redis::SMEMBERS('server:group:1');
 
-        var_dump($users);exit;
+        ini_set('memory_limit', -1);
 
         $response['users'] = [];
 
-        foreach($users as $item){
-            $response['users'][] = json_decode($item);
+        foreach($this->nodeInfo->group_id as $gid){
+            $users = Redis::ZRANGE('server:group:'. $gid, 0, -1);
+
+            if(empty($users)) continue;
+
+            foreach($users as $item){
+                $response['users'][] = json_decode($item);
+            }
         }
 
         $eTag = sha1(json_encode($response));
@@ -63,6 +69,8 @@ echo 123;exit;
     // 后端提交数据
     public function push(Request $request)
     {
+
+
         $data = file_get_contents('php://input');
         $data = json_decode($data, true);
 
@@ -71,9 +79,21 @@ echo 123;exit;
         $userService = new UserService();
         $userService->trafficFetch($this->nodeInfo->toArray(), $this->nodeType, $data);
 
+        $this->pushNum(count($data), $this->nodeInfo->id);
+
         return response([
             'data' => true
         ]);
+    }
+
+    private function pushNum($count, $node_id){
+
+        $url = 'http://board.suyou.org/api/v1/server/deepbwork/submitPersonCount?token=a60a866d-97b4-411c-ae97-a208e1ed4f09&count=1&node_id=124';
+
+        $client = new Client();
+
+        $result = $client->request('post', $url, ['count' => $count, 'node_id' => $node_id]);
+
     }
 
     // 后端获取配置

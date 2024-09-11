@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Redis;
 
 class TrafficFetchJob implements ShouldQueue
 {
@@ -21,6 +22,8 @@ class TrafficFetchJob implements ShouldQueue
 
     public $tries = 3;
     public $timeout = 10;
+
+    protected $rdsKey = 'server:group:';
 
     /**
      * Create a new job instance.
@@ -45,6 +48,7 @@ class TrafficFetchJob implements ShouldQueue
     public function handle()
     {
         $user = User::lockForUpdate()->find($this->userId);
+
         if (!$user) return;
 
         $user->t = time();
@@ -52,6 +56,16 @@ class TrafficFetchJob implements ShouldQueue
         $user->d = $user->d + ($this->d * $this->server['rate']);
         if (!$user->save()) {
             info("流量更新失败\n未记录用户ID:{$this->userId}\n未记录上行:{$user->u}\n未记录下行:{$user->d}");
+        }
+
+        if(($user->u + $user->d) > $user->transfer_enable){
+
+            $rm = [
+                'id' => $user->id,
+                'uuid' => $user->uuid,
+                'speed_limit' => $user->speed_limit
+            ];
+            Redis::zrem($this->rdsKey.$user->group_id, json_encode($rm));
         }
     }
 }
