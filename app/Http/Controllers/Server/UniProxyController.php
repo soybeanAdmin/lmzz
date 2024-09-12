@@ -31,7 +31,7 @@ class UniProxyController extends Controller
         }
 
         $this->nodeType = $request->input('node_type');
-//        if ($this->nodeType === 'v2ray') $this->nodeType = 'vmess';
+        if ($this->nodeType === 'v2ray') $this->nodeType = 'vmess';
         $this->nodeId = $request->input('node_id');
 
         $this->serverService = new ServerService();
