@@ -40,24 +40,9 @@ class UserGroup extends Command
     public function handle()
     {
 
-        $users = User::select(['id', 'uuid', 'speed_limit', 'group_id'])->limit(100)->get()->toArray();
-
-        foreach($users as $item){
-
-            $gid = $item['group_id'];
-
-            if(!$gid) continue;
-
-            unset($item['group_id']);
-
-            Redis::zadd('server:group:'.$gid, $item['id'],json_encode($item));
-        }
-
-        exit;
-
         $group_id = $this->argument('group_id');
 
-        $userModel = User::whereRaw("(u + d) < transfer_enable");
+        $userModel = User::select(['id', 'uuid', 'speed_limit', 'group_id'])->whereRaw("(u + d) < transfer_enable");
 
         if ($group_id != 0){
             $userModel->where('group_id', $group_id);
@@ -82,7 +67,7 @@ class UserGroup extends Command
 
                 unset($item['group_id']);
 
-                Redis::zadd('server:group:'.$gid, json_encode($item));
+                Redis::zadd('server:group:'.$gid,$item['id'], json_encode($item));
             }
 
             $index = $limit * ($i + 1);
