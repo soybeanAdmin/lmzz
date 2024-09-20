@@ -57,7 +57,7 @@ class UserGroup extends Command
 
         for($i = 0; $i < $len; $i ++){
 
-            $users = $userModel->limit($index, $limit)->get()->toArray();
+            $users = $userModel->offset($index)->limit($limit)->get()->toArray();
 
             foreach($users as $item){
 
