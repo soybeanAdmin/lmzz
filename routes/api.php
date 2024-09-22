@@ -32,6 +32,9 @@ Route::group([
         $router->get('/UniProxy/user', 'Server\\UniProxyController@user');
         $router->post('/UniProxy/push', 'Server\\UniProxyController@push');
         $router->get('/UniProxy/config', 'Server\\UniProxyController@config');
+
+        $router->post('/UniProxy/pushUser', 'Server\\UserProxyController@pushUser');
+
     });
 
 });

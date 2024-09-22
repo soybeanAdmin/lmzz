@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Server;
 
+use App\Models\User;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -49,5 +50,19 @@ class UserProxyController extends Controller
         ]);
     }
 
+    public function pushUser(Request $request){
+
+        $uid = $request->input('user_id');
+
+        $user = User::select(['id', 'uuid', 'speed_limit', 'group_id'])->where('id', $uid)->first()->toArray();
+
+        $gid = $user['group_id'];
+        unset($user['group_id']);
+
+        Redis::zadd('server:group:'.$gid,$user['id'], json_encode($user));
+        return response([
+            'data' => true
+        ]);
+    }
 
 }
