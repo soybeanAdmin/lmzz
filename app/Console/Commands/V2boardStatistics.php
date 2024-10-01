@@ -25,6 +25,8 @@ class V2boardStatistics extends Command
      */
     protected $description = '统计任务';
 
+    protected $date;
+
     /**
      * Create a new command instance.
      *
@@ -42,6 +44,8 @@ class V2boardStatistics extends Command
      */
     public function handle()
     {
+        $this->date = date('Y-m-d');
+
         $startAt = microtime(true);
         ini_set('memory_limit', -1);
         $this->statUser();
@@ -53,7 +57,7 @@ class V2boardStatistics extends Command
     private function statServer()
     {
         $createdAt = time();
-        $recordAt = strtotime('-1 day', strtotime(date('Y-m-d')));
+        $recordAt = strtotime('-1 day', strtotime($this->date));
         $statService = new StatisticalService();
         $statService->setStartAt($recordAt);
         $statService->setServerStats();
@@ -81,7 +85,7 @@ class V2boardStatistics extends Command
     private function statUser()
     {
         $createdAt = time();
-        $recordAt = strtotime('-1 day', strtotime(date('Y-m-d')));
+        $recordAt = strtotime('-1 day', strtotime($this->date));
         $statService = new StatisticalService();
         $statService->setStartAt($recordAt);
         $statService->setUserStats();
@@ -108,7 +112,7 @@ class V2boardStatistics extends Command
 
     private function stat()
     {
-        $endAt = strtotime(date('Y-m-d'));
+        $endAt = strtotime($this->date);
         $startAt = strtotime('-1 day', $endAt);
         $statisticalService = new StatisticalService();
         $statisticalService->setStartAt($startAt);
