@@ -24,6 +24,9 @@ class StatisticalService {
     public function setStartAt($timestamp) {
         $this->startAt = $timestamp;
     }
+    public function setEndAt($timestamp) {
+        $this->endAt = $timestamp;
+    }
 
     public function setUserStats() {
         $this->userStats = Cache::get("stat_user_{$this->startAt}");
