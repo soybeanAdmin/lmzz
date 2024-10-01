@@ -65,4 +65,49 @@ class StatisticalService {
         Cache::set("stat_user_{$this->startAt}", json_encode($this->userStats));
     }
 
+    public function getStatUser()
+    {
+        $stats = [];
+        foreach ($this->userStats as $k => $v) {
+            foreach (array_keys($v) as $userId) {
+                if (isset($v[$userId])) {
+                    $stats[] = [
+                        'server_rate' => $k,
+                        'u' => $v[$userId][0],
+                        'd' => $v[$userId][1],
+                        'user_id' => $userId
+                    ];
+                }
+            }
+        }
+        return $stats;
+    }
+
+    public function getStatServer()
+    {
+        $stats = [];
+        foreach ($this->serverStats as $serverType => $v) {
+            foreach (array_keys($v) as $serverId) {
+                if (isset($v[$serverId])) {
+                    $stats[] = [
+                        'server_id' => $serverId,
+                        'server_type' => $serverType,
+                        'u' => $v[$serverId][0],
+                        'd' => $v[$serverId][1],
+                    ];
+                }
+            }
+        }
+        return $stats;
+    }
+
+    public function clearStatUser()
+    {
+        Cache::forget("stat_user_{$this->startAt}");
+    }
+
+    public function clearStatServer()
+    {
+        Cache::forget("stat_server_{$this->startAt}");
+    }
 }
